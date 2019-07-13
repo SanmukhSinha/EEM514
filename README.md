@@ -1,6 +1,6 @@
-#EEM514 - Advanced Programming Lab
+# EEM514 - Advanced Programming Lab
 
-Completed Assignments:
+## Completed Assignments:
 
-Incomplete Assignments:
+## Incomplete Assignments:
 
