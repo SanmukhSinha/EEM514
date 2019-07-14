@@ -1,2 +1,5 @@
 #Visual Studio Code stuff
 .vscode/
+
+#Java
+*.class
