@@ -1,7 +1,7 @@
 import java.util.Scanner;
 import java.util.Random;
 
-public class NumberGuessingGame2 {
+public class NumberGuessingGame {
 
     public static void guess(int low, int high, Scanner in) {
         Random rand;
@@ -13,13 +13,15 @@ public class NumberGuessingGame2 {
         while (true) {
             turns++;
             guessNum = in.nextInt();
-
-            if (guessNum < randomNum) {
-                System.out.println("Your guess is Smaller ");
+            if (guessNum < low || guessNum > high) {
+                System.out.println("Enter a number in the range");
+                turns--;
+            }else if (guessNum < randomNum) {
+                System.out.println("Think Higher \n");
             } else if (guessNum > randomNum) {
-                System.out.println("Your guess is Larger ");
+                System.out.println("Think Lower \n");
             } else {
-                System.out.println("Correctly guessed in " + turns + " turns");
+                System.out.println("Number matched in " + turns + " tries");
                 break;
             }
         }
