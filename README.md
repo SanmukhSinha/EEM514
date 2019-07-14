@@ -2,6 +2,7 @@
 
 ## Completed Assignments:
   - Assignment 0
+  - Assignment 1
 
 ## Incomplete Assignments:
 
