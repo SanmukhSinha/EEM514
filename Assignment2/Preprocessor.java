@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class Preprocessor {
+    private static final String PATH = "E:/Coding/Others/Java/EEM514/Assignment2/";
 
     public static void createCopy(String fileName, String copyFileName) {
         /* makes a copy of file */
@@ -15,8 +16,8 @@ public class Preprocessor {
         BufferedWriter writer = null;
 
         try {
-            File oldFile = new File("E:/Coding/Others/Java/EEM514/Assignment2/" + fileName);
-            File newFile = new File("E:/Coding/Others/Java/EEM514/Assignment2/" + copyFileName);
+            File oldFile = new File(PATH + fileName);
+            File newFile = new File(PATH + copyFileName);
 
             FileReader fileRead = new FileReader(oldFile);
             FileWriter fileWrite = new FileWriter(newFile);
@@ -46,8 +47,8 @@ public class Preprocessor {
 
         BufferedReader reader = null;
         BufferedWriter writer = null;
-        File file = new File("E:/Coding/Others/Java/EEM514/Assignment2/" + fileName);
-        File tempFile = new File("E:/Coding/Others/Java/EEM514/Assignment2/temp" + fileName);
+        File file = new File(PATH + fileName);
+        File tempFile = new File(PATH + "temp" + fileName);
 
         try {
             FileReader fileRead = new FileReader(tempFile);
@@ -126,8 +127,8 @@ public class Preprocessor {
 
         BufferedReader reader = null;
         BufferedWriter writer = null;
-        File file = new File("E:/Coding/Others/Java/EEM514/Assignment2/" + fileName);
-        File tempFile = new File("E:/Coding/Others/Java/EEM514/Assignment2/temp" + fileName);
+        File file = new File(PATH + fileName);
+        File tempFile = new File(PATH + "temp" + fileName);
 
         try {
 
@@ -217,7 +218,7 @@ public class Preprocessor {
         if (!headerList.contains(headerFile)) {
             headerList.add(headerFile);
             try {
-                FileReader fileRead = new FileReader("E:/Coding/Others/Java/EEM514/Assignment2/" + headerFile);
+                FileReader fileRead = new FileReader(PATH + headerFile);
                 reader = new BufferedReader(fileRead);
 
                 String line;
@@ -264,8 +265,8 @@ public class Preprocessor {
         removeWhitespaces(fileName);
 
         try {
-            FileReader fileRead = new FileReader("E:/Coding/Others/Java/EEM514/Assignment2/xyz.c");
-            FileWriter fileWrite = new FileWriter("E:/Coding/Others/Java/EEM514/Assignment2/tempxyz.c");
+            FileReader fileRead = new FileReader(PATH + "xyz.c");
+            FileWriter fileWrite = new FileWriter(PATH + "tempxyz.c");
             reader = new BufferedReader(fileRead);
             writer = new BufferedWriter(fileWrite);
 
@@ -301,7 +302,7 @@ public class Preprocessor {
         for (int i = 0; i < trueFileList.size(); i++) {// recreates the original files
             String name = trueFileList.get(i);
             createCopy("true" + name, name);
-            File file = new File("E:\\Coding\\Others\\Java\\EEM514\\Assignment2\\true" + name);
+            File file = new File(PATH + "true" + name);
             file.delete();
         }
     }
