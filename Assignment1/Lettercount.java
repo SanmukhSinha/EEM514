@@ -22,7 +22,7 @@ class SortbyCount implements Comparator<Alpha> {
     }
 }
 
-public class Prog {
+public class Lettercount{
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
         int i, j, alphaCount[] = new int[256], argsLen = args.length;

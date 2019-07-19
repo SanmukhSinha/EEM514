@@ -49,7 +49,6 @@ public class Integers {
                 else if (num < min)
                     min = num;
             }
-
         }
 
         System.out.println("\nLargest Number = " + max);

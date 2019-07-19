@@ -27,9 +27,9 @@ public class Palindrome {
         }
 
         if (flag) {
-            System.out.println("It is a Palindrome");
+            System.out.println("A Palindrome");
         } else {
-            System.out.println("It is not a Palindrome");
+            System.out.println("Not a Palindrome");
         }
         in.close();
     }
