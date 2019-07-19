@@ -9,7 +9,7 @@ int three = 3;
 char a [200] = "#include \"\" /*F( a,b  )*/ #define"; int x;
 printf("He/*\"     */llo  %d %d \n",one,one);
 printf( " %d  %d MAX %d", 10 ,20 ,10);
-int x = 20;
+int x = F (10,10);
 char b[30] = "lolwut";
 printf("%s",b );
 return 0;
