@@ -44,37 +44,28 @@ public class Preprocessor {
     private static final String PATH = "E:/Coding/Others/Java/EEM514/Assignment2/";
     // set to empty for relative address
 
-    public static void createCopy(String fileName, String copyFileName) {
+    public static void createCopy(String fileName, String copyFileName) throws IOException {
         /* makes a copy of file */
 
         BufferedReader reader = null;
         BufferedWriter writer = null;
-        try {
-            File oldFile = new File(PATH + fileName);
-            File newFile = new File(PATH + copyFileName);
+        File oldFile = new File(PATH + fileName);
+        File newFile = new File(PATH + copyFileName);
 
-            FileReader fileRead = new FileReader(oldFile);
-            FileWriter fileWrite = new FileWriter(newFile);
-            reader = new BufferedReader(fileRead);
-            writer = new BufferedWriter(fileWrite);
+        FileReader fileRead = new FileReader(oldFile);
+        FileWriter fileWrite = new FileWriter(newFile);
+        reader = new BufferedReader(fileRead);
+        writer = new BufferedWriter(fileWrite);
 
-            String line;
-            while ((line = reader.readLine()) != null) {
-                writer.write(line + '\n');
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                reader.close();
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        String line;
+        while ((line = reader.readLine()) != null) {
+            writer.write(line + '\n');
         }
+        reader.close();
+        writer.close();
     }
 
-    public static void removeWhitespaces(String fileName) {
+    public static void removeWhitespaces(String fileName) throws IOException {
         /* removes all whitespaces, call after removeComments */
         /*
          * Logic: First finds positon of all valid quotes. Then removes whitespaces in
@@ -88,77 +79,68 @@ public class Preprocessor {
         File file = new File(PATH + fileName);
         File tempFile = new File(PATH + "temp" + fileName);
 
-        try {
-            FileReader fileRead = new FileReader(tempFile);
-            FileWriter fileWrite = new FileWriter(file);
-            reader = new BufferedReader(fileRead);
-            writer = new BufferedWriter(fileWrite);
+        FileReader fileRead = new FileReader(tempFile);
+        FileWriter fileWrite = new FileWriter(file);
+        reader = new BufferedReader(fileRead);
+        writer = new BufferedWriter(fileWrite);
 
-            String line;
-            boolean quote = false;// outside while to include multi-line quotes
+        String line;
+        boolean quote = false;// outside while to include multi-line quotes
 
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                int pos = 0, i;
-                String newLine = "";
-                // quotePos stores start and end indices of all qoutes
-                ArrayList<Integer> quotePos = new ArrayList<Integer>();
+        while ((line = reader.readLine()) != null) {
+            line = line.trim();
+            int pos = 0, i;
+            String newLine = "";
+            // quotePos stores start and end indices of all qoutes
+            ArrayList<Integer> quotePos = new ArrayList<Integer>();
 
-                while (pos < line.length()) {
-                    if (quote) {
-                        if (line.charAt(pos) == '\"') {
-                            if (!(pos > 0 && line.charAt(pos - 1) == '\\')) {
-                                quote = false;
-                                quotePos.add(pos);
-                            }
-                        }
-                    } else {
-                        if (line.charAt(pos) == '\"') {
-                            quote = true;
+            while (pos < line.length()) {
+                if (quote) {
+                    if (line.charAt(pos) == '\"') {
+                        if (!(pos > 0 && line.charAt(pos - 1) == '\\')) {
+                            quote = false;
                             quotePos.add(pos);
                         }
                     }
-                    pos++;
-                }
-
-                if (quotePos.size() > 0) {
-                    String tempLine = line.substring(0, quotePos.get(0));
-                    newLine = tempLine.replaceAll("\\s+", " ");
-
-                    for (i = 0; i < quotePos.size(); i += 2) {
-                        // inside quotes exactly copied
-                        newLine = newLine + line.substring(quotePos.get(i), quotePos.get(i + 1) + 1);
-                        try {
-                            // outside quotes whitespaces removed
-                            tempLine = line.substring(quotePos.get(i + 1) + 1, quotePos.get(i + 2));
-                            newLine = newLine + tempLine.replaceAll("\\s+", " ");
-                        } catch (IndexOutOfBoundsException e) {
-                        }
-                    }
-                    if (quotePos.get(quotePos.size() - 1) < line.length() - 1) {
-                        tempLine = line.substring(quotePos.get(quotePos.size() - 1) + 1);
-                        newLine = newLine + tempLine.replaceAll("\\s+", " ");
-                    }
                 } else {
-                    // no quotes case
-                    newLine = line.replaceAll("\\s+", " ");
+                    if (line.charAt(pos) == '\"') {
+                        quote = true;
+                        quotePos.add(pos);
+                    }
                 }
-                writer.write(newLine + '\n');
+                pos++;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                reader.close();
-                writer.close();
-                tempFile.delete();
-            } catch (IOException e) {
-                e.printStackTrace();
+
+            if (quotePos.size() > 0) {
+                String tempLine = line.substring(0, quotePos.get(0));
+                newLine = tempLine.replaceAll("\\s+", " ");
+
+                for (i = 0; i < quotePos.size(); i += 2) {
+                    // inside quotes exactly copied
+                    newLine = newLine + line.substring(quotePos.get(i), quotePos.get(i + 1) + 1);
+                    try {
+                        // outside quotes whitespaces removed
+                        tempLine = line.substring(quotePos.get(i + 1) + 1, quotePos.get(i + 2));
+                        newLine = newLine + tempLine.replaceAll("\\s+", " ");
+                    } catch (IndexOutOfBoundsException e) {
+                    }
+                }
+                if (quotePos.get(quotePos.size() - 1) < line.length() - 1) {
+                    tempLine = line.substring(quotePos.get(quotePos.size() - 1) + 1);
+                    newLine = newLine + tempLine.replaceAll("\\s+", " ");
+                }
+            } else {
+                // no quotes case
+                newLine = line.replaceAll("\\s+", " ");
             }
+            writer.write(newLine + '\n');
         }
+        reader.close();
+        writer.close();
+        tempFile.delete();
     }
 
-    public static void removeComments(String fileName) {
+    public static void removeComments(String fileName) throws IOException {
         /* removes all c-style comments */
         /*
          * Logic: Copies non-comment text using double boolean variable loop. Replaces
@@ -173,71 +155,62 @@ public class Preprocessor {
         File file = new File(PATH + fileName);
         File tempFile = new File(PATH + "temp" + fileName);
 
-        try {
+        FileReader fileRead = new FileReader(tempFile);
+        FileWriter fileWrite = new FileWriter(file);
+        reader = new BufferedReader(fileRead);
+        writer = new BufferedWriter(fileWrite);
 
-            FileReader fileRead = new FileReader(tempFile);
-            FileWriter fileWrite = new FileWriter(file);
-            reader = new BufferedReader(fileRead);
-            writer = new BufferedWriter(fileWrite);
+        String line;
+        boolean quote = false, comment = false;
 
-            String line;
-            boolean quote = false, comment = false;
+        while ((line = reader.readLine()) != null) {
+            line = line.trim();
+            int pos = 0, lineLen = line.length();
+            String newLine = "";
 
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                int pos = 0, lineLen = line.length();
-                String newLine = "";
-
-                while (pos < lineLen) {
-                    if (!comment) {
-                        if (quote) {
-                            if (line.charAt(pos) == '\"') {
-                                if (!(pos > 0 && line.charAt(pos - 1) == '\\')) {
-                                    quote = false;
-                                }
+            while (pos < lineLen) {
+                if (!comment) {
+                    if (quote) {
+                        if (line.charAt(pos) == '\"') {
+                            if (!(pos > 0 && line.charAt(pos - 1) == '\\')) {
+                                quote = false;
                             }
-                        } else {
-                            if (line.charAt(pos) == '\"') {
-                                quote = true;
-                            } else if (line.charAt(pos) == '/') {
-                                if (pos + 1 < lineLen && line.charAt(pos + 1) == '*') {
-                                    comment = true;
-                                }
-                            }
-                        }
-                        if (!comment) {
-                            newLine = newLine + line.charAt(pos);
                         }
                     } else {
-                        if (line.charAt(pos) == '*') {
-                            if (pos + 1 < lineLen && line.charAt(pos + 1) == '/') {
-                                comment = false;
-                                newLine = newLine + " ";
-                                pos++;
+                        if (line.charAt(pos) == '\"') {
+                            quote = true;
+                        } else if (line.charAt(pos) == '/') {
+                            if (pos + 1 < lineLen && line.charAt(pos + 1) == '*') {
+                                comment = true;
                             }
                         }
                     }
-                    pos++;
+                    if (!comment) {
+                        newLine = newLine + line.charAt(pos);
+                    }
+                } else {
+                    if (line.charAt(pos) == '*') {
+                        if (pos + 1 < lineLen && line.charAt(pos + 1) == '/') {
+                            comment = false;
+                            newLine = newLine + " ";
+                            pos++;
+                        }
+                    }
                 }
-
-                writer.write(newLine);
-                // problem: not sure whether to include this or not
-                if (!comment) {
-                    // to convert multi-line comments into a single line
-                    writer.write('\n');
-                }
+                pos++;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                reader.close();
-                writer.close();
-                tempFile.delete();
-            } catch (IOException e) {
-                e.printStackTrace();
+
+            writer.write(newLine);
+            // problem: not sure whether to include this or not
+            if (!comment) {
+                // to convert multi-line comments into a single line
+                writer.write('\n');
             }
         }
+        reader.close();
+        writer.close();
+        tempFile.delete();
+
     }
 
     public static void storeDefine(String line, Hashtable<String, String> defineTableConst,
@@ -245,9 +218,8 @@ public class Preprocessor {
         /* Stores all #define constants and macros in hashtables */
         /*
          * Logic: Searches for a #define, if found then takes the const(or macro) name (
-         * uses'('to check if const or macro ). Only binary
-         * macros, might not work if quotes are present in macros. For further explaination look
-         * below
+         * uses'('to check if const or macro ). Only binary macros, might not work if
+         * quotes are present in macros. For further explaination look below
          */
         int i = line.indexOf("define") + 7;
         char chr;
@@ -672,7 +644,7 @@ public class Preprocessor {
     }
 
     public static void writeInclude(String str, BufferedWriter writer, ArrayList<String> headerList,
-            ArrayList<String> trueFileList) {
+            ArrayList<String> trueFileList) throws IOException {
         /* To add #include files data */
         /*
          * Logic: Looks for headerFile name in quotes. If accessed for the first time:
@@ -695,49 +667,40 @@ public class Preprocessor {
 
         if (!headerList.contains(headerFile)) {
             headerList.add(headerFile);
-            try {
-                FileReader fileRead = new FileReader(PATH + headerFile);
-                reader = new BufferedReader(fileRead);
+            FileReader fileRead = new FileReader(PATH + headerFile);
+            reader = new BufferedReader(fileRead);
 
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
 
-                    if (!line.isEmpty()) {
-                        if (line.charAt(0) == '#' && (line.indexOf("include") == 1 || line.indexOf("include") == 2)) {
-                            // problem: works even if there is garbage b/w include and "..."
-                            // but may be more reliable
-                            writeInclude(line, writer, headerList, trueFileList);
-                        } else {
-                            writer.write(line + '\n');
-                            // System.out.println(line);
-                        }
+                if (!line.isEmpty()) {
+                    if (line.charAt(0) == '#' && (line.indexOf("include") == 1 || line.indexOf("include") == 2)) {
+                        // problem: works even if there is garbage b/w include and "..."
+                        // but may be more reliable
+                        writeInclude(line, writer, headerList, trueFileList);
+                    } else {
+                        writer.write(line + '\n');
+                        // System.out.println(line);
                     }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
         }
-
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         BufferedReader reader = null;
         BufferedWriter writer = null;
+        FileReader fileRead;
+        FileWriter fileWrite;
         ArrayList<String> trueFileList = new ArrayList<String>();
         ArrayList<String> headerList = new ArrayList<String>();
         String fileName = "xyz.c";
+        String line;
 
         createCopy(fileName, "true" + fileName);
         trueFileList.add(fileName);
-
         removeComments(fileName);
         removeWhitespaces(fileName);
 
@@ -746,99 +709,77 @@ public class Preprocessor {
         File mainFile = new File(PATH + fileName);
 
         /* Deals with #includes */
-        try {
-            FileReader fileRead = new FileReader(tempFile);
-            FileWriter fileWrite = new FileWriter(mainFile);
-            reader = new BufferedReader(fileRead);
-            writer = new BufferedWriter(fileWrite);
+        fileRead = new FileReader(tempFile);
+        fileWrite = new FileWriter(mainFile);
+        reader = new BufferedReader(fileRead);
+        writer = new BufferedWriter(fileWrite);
 
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (!line.isEmpty()) {
-                    if (line.charAt(0) == '#' && (line.indexOf("include") == 1 || line.indexOf("include") == 2)) {
-                        // for including header files
-                        // ArrayList<String> headerList = new ArrayList<String>();//do not use this
-                        writeInclude(line, writer, headerList, trueFileList);
-                    } else {
-                        writer.write(line + '\n');
-                        // System.out.println(line);//
-                    }
+        while ((line = reader.readLine()) != null) {
+            line = line.trim();
+            if (!line.isEmpty()) {
+                if (line.charAt(0) == '#' && (line.indexOf("include") == 1 || line.indexOf("include") == 2)) {
+                    // for including header files
+                    // ArrayList<String> headerList = new ArrayList<String>();//do not use this
+                    writeInclude(line, writer, headerList, trueFileList);
+                } else {
+                    writer.write(line + '\n');
+                    // System.out.println(line);//
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                reader.close();
-                writer.close();
-                tempFile.delete();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
+        reader.close();
+        writer.close();
+        tempFile.delete();
 
         /* Deals with #defines */
         createCopy(fileName, "temp" + fileName);
-        try {
-            /* For Constants */
-            FileReader fileRead = new FileReader(tempFile);
-            FileWriter fileWrite = new FileWriter(mainFile);
-            reader = new BufferedReader(fileRead);
-            writer = new BufferedWriter(fileWrite);
+        /* For Constants */
+        fileRead = new FileReader(tempFile);
+        fileWrite = new FileWriter(mainFile);
+        reader = new BufferedReader(fileRead);
+        writer = new BufferedWriter(fileWrite);
 
-            String line;
-            Hashtable<String, String> defineTableConst = new Hashtable<String, String>();
-            Hashtable<String, DefineFunc> defineTableFunc = new Hashtable<String, DefineFunc>();
+        Hashtable<String, String> defineTableConst = new Hashtable<String, String>();
+        Hashtable<String, DefineFunc> defineTableFunc = new Hashtable<String, DefineFunc>();
 
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (!line.isEmpty()) {
-                    if (line.charAt(0) == '#' && (line.indexOf("define") == 1 || line.indexOf("define") == 2)) {
-                        storeDefine(line, defineTableConst, defineTableFunc);
-                    } else {
-                        do {
-                            // System.out.println(line);//
-                            line = putDefineConst(line, defineTableConst);
-                        } while (line.charAt(0) == ' ');
-                        writer.write(line + '\n');
-                    }
-                }
-            }
-
-            /* For Macros */
-            tempFile.delete();
-            reader.close();
-            writer.close();
-
-            createCopy(fileName, "temp" + fileName);
-            fileRead = new FileReader(tempFile);
-            fileWrite = new FileWriter(mainFile);
-            reader = new BufferedReader(fileRead);
-            writer = new BufferedWriter(fileWrite);
-
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (!line.isEmpty()) {
+        while ((line = reader.readLine()) != null) {
+            line = line.trim();
+            if (!line.isEmpty()) {
+                if (line.charAt(0) == '#' && (line.indexOf("define") == 1 || line.indexOf("define") == 2)) {
+                    storeDefine(line, defineTableConst, defineTableFunc);
+                } else {
                     do {
                         // System.out.println(line);//
-                        line = putDefineFunc(line, defineTableFunc);
+                        line = putDefineConst(line, defineTableConst);
                     } while (line.charAt(0) == ' ');
                     writer.write(line + '\n');
                 }
             }
+        }
+        tempFile.delete();
+        reader.close();
+        writer.close();
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                reader.close();
-                writer.close();
-                tempFile.delete();
-            } catch (IOException e) {
-                e.printStackTrace();
+        /* For Macros */
+        createCopy(fileName, "temp" + fileName);
+        fileRead = new FileReader(tempFile);
+        fileWrite = new FileWriter(mainFile);
+        reader = new BufferedReader(fileRead);
+        writer = new BufferedWriter(fileWrite);
+
+        while ((line = reader.readLine()) != null) {
+            line = line.trim();
+            if (!line.isEmpty()) {
+                do {
+                    // System.out.println(line);//
+                    line = putDefineFunc(line, defineTableFunc);
+                } while (line.charAt(0) == ' ');
+                writer.write(line + '\n');
             }
         }
+        reader.close();
+        writer.close();
+        tempFile.delete();
 
         createCopy(fileName, "final" + fileName);
 
