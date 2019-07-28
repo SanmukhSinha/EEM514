@@ -9,10 +9,10 @@ import java.util.Hashtable;
 import java.util.Enumeration;
 /*
 Every time a new file is opened, the following occur in sequence:
-    Create a truecopy of the file
+    A truecopy of the file is created
     removeComments
     removeWhitespaces
-    scan the file :
+    scan the file and :
         Add #includes recursively using writeInclude
         Create #define data table using storeDefine
         Add #define constants using putDefineConst
@@ -24,7 +24,7 @@ Every time a new file is opened, the following occur in sequence:
 class DefineFunc {
     /*
      * Helper class used in #define macros, to distinguish between different types
-     * if binary macros
+     * of binary macros
      */
     String var1, var2;
     char operator;
@@ -45,7 +45,7 @@ public class Preprocessor {
     // set to empty for relative address
 
     public static void createCopy(String fileName, String copyFileName) throws IOException {
-        /* makes a copy of file */
+        /* Makes a copy of file */
 
         BufferedReader reader = null;
         BufferedWriter writer = null;
@@ -66,10 +66,10 @@ public class Preprocessor {
     }
 
     public static void removeWhitespaces(String fileName) throws IOException {
-        /* removes all whitespaces, call after removeComments */
+        /* Removes all whitespaces,only call after removeComments */
         /*
          * Logic: First finds positon of all valid quotes. Then removes whitespaces in
-         * not quoted text, copies quoted text as it is.
+         * not quoted text and copies quoted text as it is.
          */
 
         createCopy(fileName, "temp" + fileName);
@@ -141,9 +141,9 @@ public class Preprocessor {
     }
 
     public static void removeComments(String fileName) throws IOException {
-        /* removes all c-style comments */
+        /* Removes all c-style comments */
         /*
-         * Logic: Copies non-comment text using double boolean variable loop. Replaces
+         * Logic: Copies non-commented text using double boolean variable loop. Replaces
          * comment by a space. Comments can't exist in a Quote and vice-versa. Backslash
          * can only be inside a quote.
          */
@@ -217,9 +217,9 @@ public class Preprocessor {
             Hashtable<String, DefineFunc> defineTableFunc) {
         /* Stores all #define constants and macros in hashtables */
         /*
-         * Logic: Searches for a #define, if found then takes the const(or macro) name (
-         * uses'('to check if const or macro ). Only binary macros, might not work if
-         * quotes are present in macros. For further explaination look below
+         * Logic: Searches for a #define, if found then takes the const(or macro) name
+         * (uses'('to check if const or macro). Only for binary macros, might not work
+         * if quotes are present in macros. For further explaination look below.
          */
         int i = line.indexOf("define") + 7;
         char chr;
@@ -238,14 +238,15 @@ public class Preprocessor {
                 i++;
             }
             defineTableConst.put(str, value);
+            System.out.println("Added: #define "+str);//
         } else {
             // macros
             /*
              * Logic: First seperates the macro part and its replacement. Then seperates the
-             * macro name Then seperates its variables(these contain 1 braces set ). Then
+             * macro name. Then seperates its variables(these contain 1 braces set). Then
              * seperates the expression variables(these can contain multiple braces set) and
-             * the binary operator. Finally we check which kind of macro it is: (a,b) a,b
-             * (a,b) b,a (a,b) etc,etc
+             * the binary operator. Finally we check which kind of macro it is: (a,b); a,b;
+             * b,a; (b,a);
              */
             while ((chr = line.charAt(i)) != ')') {
                 str = str + chr;
@@ -344,16 +345,17 @@ public class Preprocessor {
 
             DefineFunc obj = new DefineFunc(v1, v2, operator, varType1, varType2);
             defineTableFunc.put(name, obj);
+            System.out.println("Added: #define "+name+"()");//
         }
     }
 
     public static String _replaceDefineConst(String line, Hashtable<String, String> defineTableConst) {
-        /* works with putDefineConst(), do not use seperately */
+        /* Works with putDefineConst(), do not use seperately */
         /*
-         * Logic: Finds for #define const symbols in non-quote area. If found, replace
+         * Logic: Finds for #define const symbols in non-quoted area. If found, replaces
          * it with its value and return the edited line with a space at start. This
-         * space tells that puDefineConst should be called again for this line. Thus the
-         * same line is called repeatedly until all of its consts are replaced with
+         * space tells that putDefineConst should be called again for this line. Thus
+         * the same line is called repeatedly until all of its consts are replaced with
          * values.
          */
 
@@ -463,13 +465,13 @@ public class Preprocessor {
     }
 
     public static String _replaceDefineFunc(String line, Hashtable<String, DefineFunc> defineTableFunc) {
-        /* works with putDefineFunc(), do not use seperately */
+        /* Works with putDefineFunc(), do not use seperately */
         /*
-         * Logic: Finds for #define macros symbols in non-quote area. If found, replace
-         * it with its expression and return the edited line with a space at start. This
-         * space tells that puDefineFunc should be called again for this line. Thus the
-         * same line is called repeatedly until all of its macros are replaced with
-         * expressions.
+         * Logic: Finds for #define macros symbols in non-quoted area. If found,
+         * replaces it with its expression and return the edited line with a space at
+         * start. This space tells that putDefineFunc should be called again for this
+         * line. Thus the same line is called repeatedly until all of its macros are
+         * replaced with their expressions.
          */
 
         Enumeration<String> keys = defineTableFunc.keys();
@@ -648,8 +650,9 @@ public class Preprocessor {
         /* To add #include files data */
         /*
          * Logic: Looks for headerFile name in quotes. If accessed for the first time:
-         * Adds to trueFileList Creates a trueCopy Removes Comments Removes Whitespaces
-         * HeaderList has names of headerfiles already included to prevent recursion
+         * Adds to trueFileList, Creates a trueCopy, Removes Comments, Removes Whitespaces
+         * HeaderList has names of headerfiles already included to prevent recursion.
+         * Then adds the headerfile into the main file.
          */
 
         int st = str.indexOf("\"");// finds name of header file enclosed in ""
@@ -657,6 +660,7 @@ public class Preprocessor {
         String headerFile = str.substring(st + 1, en).trim(); // this works for " one.h" but it should not
 
         if (!(trueFileList.contains(headerFile))) {
+            System.out.println("Included: "+ headerFile);//
             createCopy(headerFile, "true" + headerFile);
             trueFileList.add(headerFile);
             removeComments(headerFile);
@@ -677,7 +681,7 @@ public class Preprocessor {
                 if (!line.isEmpty()) {
                     if (line.charAt(0) == '#' && (line.indexOf("include") == 1 || line.indexOf("include") == 2)) {
                         // problem: works even if there is garbage b/w include and "..."
-                        // but may be more reliable
+                        // but is more reliable
                         writeInclude(line, writer, headerList, trueFileList);
                     } else {
                         writer.write(line + '\n');
@@ -699,6 +703,7 @@ public class Preprocessor {
         String fileName = "xyz.c";
         String line;
 
+        System.out.println("Opened File: "+ fileName);//
         createCopy(fileName, "true" + fileName);
         trueFileList.add(fileName);
         removeComments(fileName);
@@ -718,7 +723,6 @@ public class Preprocessor {
             line = line.trim();
             if (!line.isEmpty()) {
                 if (line.charAt(0) == '#' && (line.indexOf("include") == 1 || line.indexOf("include") == 2)) {
-                    // for including header files
                     // ArrayList<String> headerList = new ArrayList<String>();//do not use this
                     writeInclude(line, writer, headerList, trueFileList);
                 } else {
@@ -782,6 +786,7 @@ public class Preprocessor {
         tempFile.delete();
 
         createCopy(fileName, "final" + fileName);
+        System.out.println("Result in File: final"+ fileName);//
 
         for (int i = 0; i < trueFileList.size(); i++) {// recreates the original files
             String name = trueFileList.get(i);
