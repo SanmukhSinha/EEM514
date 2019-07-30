@@ -10,22 +10,20 @@ import java.util.Enumeration;
 /*
 Every time a new file is opened, the following occur in sequence:
     A truecopy of the file is created
-    removeComments
-    removeWhitespaces
-    scan the file and :
+    removeComments()
+    removeWhitespaces()
+    Scan the file and :
         Add #includes recursively using writeInclude
         Create #define data table using storeDefine
         Add #define constants using putDefineConst
         Add #define macros using putDefineFunc
 
     Detailed explanation of each function given in it.
+    I know the program is way too long, but can't shorten it anymore.
 */
 
 class DefineFunc {
-    /*
-     * Helper class used in #define macros, to distinguish between different types
-     * of binary macros
-     */
+    /* For #define macros,to distinguish between different types of binary macros */
     String var1, var2;
     char operator;
     int varType1;
@@ -78,7 +76,6 @@ public class Preprocessor {
         BufferedWriter writer = null;
         File file = new File(PATH + fileName);
         File tempFile = new File(PATH + "temp" + fileName);
-
         FileReader fileRead = new FileReader(tempFile);
         FileWriter fileWrite = new FileWriter(file);
         reader = new BufferedReader(fileRead);
@@ -86,7 +83,6 @@ public class Preprocessor {
 
         String line;
         boolean quote = false;// outside while to include multi-line quotes
-
         while ((line = reader.readLine()) != null) {
             line = line.trim();
             int pos = 0, i;
@@ -238,7 +234,7 @@ public class Preprocessor {
                 i++;
             }
             defineTableConst.put(str, value);
-            System.out.println("Added: #define "+str);//
+            System.out.println("Added: #define " + str);//
         } else {
             // macros
             /*
@@ -345,7 +341,7 @@ public class Preprocessor {
 
             DefineFunc obj = new DefineFunc(v1, v2, operator, varType1, varType2);
             defineTableFunc.put(name, obj);
-            System.out.println("Added: #define "+name+"()");//
+            System.out.println("Added: #define " + name + "()");//
         }
     }
 
@@ -650,9 +646,9 @@ public class Preprocessor {
         /* To add #include files data */
         /*
          * Logic: Looks for headerFile name in quotes. If accessed for the first time:
-         * Adds to trueFileList, Creates a trueCopy, Removes Comments, Removes Whitespaces
-         * HeaderList has names of headerfiles already included to prevent recursion.
-         * Then adds the headerfile into the main file.
+         * Adds to trueFileList, Creates a trueCopy, Removes Comments, Removes
+         * Whitespaces HeaderList has names of headerfiles already included to prevent
+         * recursion. Then adds the headerfile into the main file.
          */
 
         int st = str.indexOf("\"");// finds name of header file enclosed in ""
@@ -660,7 +656,7 @@ public class Preprocessor {
         String headerFile = str.substring(st + 1, en).trim(); // this works for " one.h" but it should not
 
         if (!(trueFileList.contains(headerFile))) {
-            System.out.println("Included: "+ headerFile);//
+            System.out.println("Included: " + headerFile);//
             createCopy(headerFile, "true" + headerFile);
             trueFileList.add(headerFile);
             removeComments(headerFile);
@@ -677,7 +673,6 @@ public class Preprocessor {
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
-
                 if (!line.isEmpty()) {
                     if (line.charAt(0) == '#' && (line.indexOf("include") == 1 || line.indexOf("include") == 2)) {
                         // problem: works even if there is garbage b/w include and "..."
@@ -685,7 +680,6 @@ public class Preprocessor {
                         writeInclude(line, writer, headerList, trueFileList);
                     } else {
                         writer.write(line + '\n');
-                        // System.out.println(line);
                     }
                 }
             }
@@ -700,10 +694,12 @@ public class Preprocessor {
         FileWriter fileWrite;
         ArrayList<String> trueFileList = new ArrayList<String>();
         ArrayList<String> headerList = new ArrayList<String>();
+        Hashtable<String, String> defineTableConst = new Hashtable<String, String>();
+        Hashtable<String, DefineFunc> defineTableFunc = new Hashtable<String, DefineFunc>();
         String fileName = "xyz.c";
         String line;
 
-        System.out.println("Opened File: "+ fileName);//
+        System.out.println("Opened File: " + fileName);//
         createCopy(fileName, "true" + fileName);
         trueFileList.add(fileName);
         removeComments(fileName);
@@ -718,7 +714,6 @@ public class Preprocessor {
         fileWrite = new FileWriter(mainFile);
         reader = new BufferedReader(fileRead);
         writer = new BufferedWriter(fileWrite);
-
         while ((line = reader.readLine()) != null) {
             line = line.trim();
             if (!line.isEmpty()) {
@@ -727,13 +722,11 @@ public class Preprocessor {
                     writeInclude(line, writer, headerList, trueFileList);
                 } else {
                     writer.write(line + '\n');
-                    // System.out.println(line);//
                 }
             }
         }
         reader.close();
         writer.close();
-        tempFile.delete();
 
         /* Deals with #defines */
         createCopy(fileName, "temp" + fileName);
@@ -742,10 +735,6 @@ public class Preprocessor {
         fileWrite = new FileWriter(mainFile);
         reader = new BufferedReader(fileRead);
         writer = new BufferedWriter(fileWrite);
-
-        Hashtable<String, String> defineTableConst = new Hashtable<String, String>();
-        Hashtable<String, DefineFunc> defineTableFunc = new Hashtable<String, DefineFunc>();
-
         while ((line = reader.readLine()) != null) {
             line = line.trim();
             if (!line.isEmpty()) {
@@ -753,14 +742,12 @@ public class Preprocessor {
                     storeDefine(line, defineTableConst, defineTableFunc);
                 } else {
                     do {
-                        // System.out.println(line);//
                         line = putDefineConst(line, defineTableConst);
                     } while (line.charAt(0) == ' ');
                     writer.write(line + '\n');
                 }
             }
         }
-        tempFile.delete();
         reader.close();
         writer.close();
 
@@ -770,12 +757,10 @@ public class Preprocessor {
         fileWrite = new FileWriter(mainFile);
         reader = new BufferedReader(fileRead);
         writer = new BufferedWriter(fileWrite);
-
         while ((line = reader.readLine()) != null) {
             line = line.trim();
             if (!line.isEmpty()) {
                 do {
-                    // System.out.println(line);//
                     line = putDefineFunc(line, defineTableFunc);
                 } while (line.charAt(0) == ' ');
                 writer.write(line + '\n');
@@ -783,12 +768,12 @@ public class Preprocessor {
         }
         reader.close();
         writer.close();
+
         tempFile.delete();
-
         createCopy(fileName, "final" + fileName);
-        System.out.println("Result in File: final"+ fileName);//
-
-        for (int i = 0; i < trueFileList.size(); i++) {// recreates the original files
+        System.out.println("\nConversion Completed\nResult in File: final" + fileName);//
+        for (int i = 0; i < trueFileList.size(); i++) {
+            /* recreates the original files */
             String name = trueFileList.get(i);
             createCopy("true" + name, name);
             File file = new File(PATH + "true" + name);
