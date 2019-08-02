@@ -13,23 +13,21 @@ Every time a new file is opened, the following occur in sequence:
     removeComments()
     removeWhitespaces()
     Scan the file and :
-        Add #includes recursively using writeInclude
-        Create #define data table using storeDefine
-        Add #define constants using putDefineConst
-        Add #define macros using putDefineFunc
+        Add #includes recursively using writeInclude()
+        Create #define data table using storeDefine()
+        Add #define constants using putDefineConst()
+        Add #define macros using putDefineFunc()
 
-    Detailed explanation of each function given in it.
-    I know the program is way too long, but can't shorten it anymore.
+Detailed explanation of each function given in it.
+I know the program is way too long, but can't shorten it anymore.
 */
 
 class DefineFunc {
     /* For #define macros,to distinguish between different types of binary macros */
-    String var1, var2;
-    char operator;
-    int varType1;
-    int varType2;
+    String var1, var2, operator;
+    int varType1, varType2;
 
-    public DefineFunc(String var1, String var2, char operator, int varType1, int varType2) {
+    public DefineFunc(String var1, String var2, String operator, int varType1, int varType2) {
         this.var1 = var1;
         this.var2 = var2;
         this.operator = operator;
@@ -39,97 +37,95 @@ class DefineFunc {
 }
 
 public class Preprocessor {
+    private static final String fileName = "xyz.c";
     private static final String PATH = "E:/Coding/Others/Java/EEM514/Assignment2/";
     // set to empty for relative address
 
     public static void createCopy(String fileName, String copyFileName) throws IOException {
         /* Makes a copy of file */
 
-        BufferedReader reader = null;
-        BufferedWriter writer = null;
-        File oldFile = new File(PATH + fileName);
-        File newFile = new File(PATH + copyFileName);
-
-        FileReader fileRead = new FileReader(oldFile);
-        FileWriter fileWrite = new FileWriter(newFile);
-        reader = new BufferedReader(fileRead);
-        writer = new BufferedWriter(fileWrite);
+        FileReader fileRead = new FileReader(PATH + fileName);
+        FileWriter fileWrite = new FileWriter(PATH + copyFileName);
+        BufferedReader reader = new BufferedReader(fileRead);
+        BufferedWriter writer = new BufferedWriter(fileWrite);
 
         String line;
         while ((line = reader.readLine()) != null) {
-            writer.write(line + '\n');
+            writer.write(line);
+            writer.newLine();
         }
         reader.close();
         writer.close();
     }
 
+    public static ArrayList<Integer> getQuotePos(String line) {
+        /* Stores start and end indices of all quotes */
+        ArrayList<Integer> quotePos = new ArrayList<Integer>();
+        boolean quote = false;
+
+        for (int pos = 0; pos < line.length(); pos++) {
+            if (quote) {
+                if (line.charAt(pos) == '\"') {
+                    if (!(pos > 0 && line.charAt(pos - 1) == '\\')) {
+                        quote = false;
+                        quotePos.add(pos);
+                    }
+                }
+            } else {
+                if (line.charAt(pos) == '\"') {
+                    quote = true;
+                    quotePos.add(pos);
+                }
+            }
+        }
+        return quotePos;
+    }
+
     public static void removeWhitespaces(String fileName) throws IOException {
-        /* Removes all whitespaces,only call after removeComments */
+        /* Removes all whitespaces, only call after removeComments */
         /*
          * Logic: First finds positon of all valid quotes. Then removes whitespaces in
          * not quoted text and copies quoted text as it is.
          */
-
         createCopy(fileName, "temp" + fileName);
 
-        BufferedReader reader = null;
-        BufferedWriter writer = null;
         File file = new File(PATH + fileName);
         File tempFile = new File(PATH + "temp" + fileName);
         FileReader fileRead = new FileReader(tempFile);
         FileWriter fileWrite = new FileWriter(file);
-        reader = new BufferedReader(fileRead);
-        writer = new BufferedWriter(fileWrite);
+        BufferedReader reader = new BufferedReader(fileRead);
+        BufferedWriter writer = new BufferedWriter(fileWrite);
 
         String line;
-        boolean quote = false;// outside while to include multi-line quotes
         while ((line = reader.readLine()) != null) {
             line = line.trim();
-            int pos = 0, i;
             String newLine = "";
-            // quotePos stores start and end indices of all qoutes
-            ArrayList<Integer> quotePos = new ArrayList<Integer>();
-
-            while (pos < line.length()) {
-                if (quote) {
-                    if (line.charAt(pos) == '\"') {
-                        if (!(pos > 0 && line.charAt(pos - 1) == '\\')) {
-                            quote = false;
-                            quotePos.add(pos);
-                        }
-                    }
-                } else {
-                    if (line.charAt(pos) == '\"') {
-                        quote = true;
-                        quotePos.add(pos);
-                    }
-                }
-                pos++;
-            }
+            ArrayList<Integer> quotePos = getQuotePos(line);
 
             if (quotePos.size() > 0) {
                 String tempLine = line.substring(0, quotePos.get(0));
                 newLine = tempLine.replaceAll("\\s+", " ");
 
-                for (i = 0; i < quotePos.size(); i += 2) {
+                for (int i = 0; i < quotePos.size(); i += 2) {
                     // inside quotes exactly copied
                     newLine = newLine + line.substring(quotePos.get(i), quotePos.get(i + 1) + 1);
-                    try {
+                    if (i + 2 < quotePos.size()) {
                         // outside quotes whitespaces removed
                         tempLine = line.substring(quotePos.get(i + 1) + 1, quotePos.get(i + 2));
                         newLine = newLine + tempLine.replaceAll("\\s+", " ");
-                    } catch (IndexOutOfBoundsException e) {
                     }
                 }
+
                 if (quotePos.get(quotePos.size() - 1) < line.length() - 1) {
                     tempLine = line.substring(quotePos.get(quotePos.size() - 1) + 1);
                     newLine = newLine + tempLine.replaceAll("\\s+", " ");
                 }
-            } else {
-                // no quotes case
+            } else {// no quotes case
                 newLine = line.replaceAll("\\s+", " ");
             }
-            writer.write(newLine + '\n');
+
+            writer.write(newLine);
+            writer.newLine();
         }
         reader.close();
         writer.close();
@@ -137,25 +133,20 @@ public class Preprocessor {
     }
 
     public static void removeComments(String fileName) throws IOException {
-        /* Removes all c-style comments */
+        /* Removes all C-style comments */
         /*
          * Logic: Copies non-commented text using double boolean variable loop. Replaces
          * comment by a space. Comments can't exist in a Quote and vice-versa. Backslash
          * can only be inside a quote.
          */
-
         createCopy(fileName, "temp" + fileName);
 
-        BufferedReader reader = null;
-        BufferedWriter writer = null;
         File file = new File(PATH + fileName);
         File tempFile = new File(PATH + "temp" + fileName);
-
         FileReader fileRead = new FileReader(tempFile);
         FileWriter fileWrite = new FileWriter(file);
-        reader = new BufferedReader(fileRead);
-        writer = new BufferedWriter(fileWrite);
-
+        BufferedReader reader = new BufferedReader(fileRead);
+        BufferedWriter writer = new BufferedWriter(fileWrite);
         String line;
         boolean quote = false, comment = false;
 
@@ -197,16 +188,13 @@ public class Preprocessor {
             }
 
             writer.write(newLine);
-            // problem: not sure whether to include this or not
-            if (!comment) {
-                // to convert multi-line comments into a single line
-                writer.write('\n');
+            if (!comment) { // to convert multi-line comments into a single line
+                writer.newLine();
             }
         }
         reader.close();
         writer.close();
         tempFile.delete();
-
     }
 
     public static void storeDefine(String line, Hashtable<String, String> defineTableConst,
@@ -228,10 +216,8 @@ public class Preprocessor {
 
         if (str.indexOf('(') == -1) {
             // constants
-            i++;
-            while (i < line.length() && (chr = line.charAt(i)) != ' ') {
-                value = value + chr;
-                i++;
+            for (i = i + 1; i < line.length(); i++) {
+                value = value + line.charAt(i);
             }
             defineTableConst.put(str, value);
             System.out.println("Added: #define " + str);//
@@ -241,8 +227,7 @@ public class Preprocessor {
              * Logic: First seperates the macro part and its replacement. Then seperates the
              * macro name. Then seperates its variables(these contain 1 braces set). Then
              * seperates the expression variables(these can contain multiple braces set) and
-             * the binary operator. Finally we check which kind of macro it is: (a,b); a,b;
-             * b,a; (b,a);
+             * the binary operator. Finally we check which kind of macro it is: a,b; b,a;
              */
             while ((chr = line.charAt(i)) != ')') {
                 str = str + chr;
@@ -250,68 +235,47 @@ public class Preprocessor {
             }
             str = str + chr;
             i++;
-            str = str.replaceAll("\\s+", "");
-            // str stores the name along with variables of macro
+            str = str.replaceAll("\\s+", ""); // str stores the name along with variables of macro
 
             String name = "", var1 = "", var2 = "", expr1 = "", expr2 = "", v1 = "", v2 = "";
-            char operator;
-            String operators = "+*-/%";
+            String operators = "+*-/%><=!&|~^", operator = "";
             int pos = 0, varType1, varType2;
 
             while (str.charAt(pos) != '(') {
                 name = name + str.charAt(pos);
                 pos++;
             }
-            name = name.trim();
             pos++;
-
             while (str.charAt(pos) != ',') {
                 var1 = var1 + str.charAt(pos);
                 pos++;
             }
-            var1 = var1.trim();
             pos++;
-
             while (str.charAt(pos) != ')') {
                 var2 = var2 + str.charAt(pos);
                 pos++;
             }
-            var2 = var2.trim();
             pos++;
 
-            while (i < line.length()) {
+            for (; i < line.length(); i++) {
                 chr = line.charAt(i);
                 expr = expr + chr;
-                i++;
             }
             expr = expr.replaceAll("\\s+", "");
-
+            expr = expr.replace("(", "");
+            expr = expr.replace(")", "");
             pos = 0;
-            while (expr.charAt(pos) == '(') {
-                pos++;
-            }
-
-            while ((chr = expr.charAt(pos)) != ')' && operators.indexOf(chr) == -1) {
+            while (operators.indexOf(expr.charAt(pos)) == -1) {
                 expr1 = expr1 + expr.charAt(pos);
                 pos++;
             }
-            expr1 = expr1.trim();
-
-            while (pos < expr.length() && operators.indexOf(expr.charAt(pos)) == -1) {
+            while (!(operators.indexOf(expr.charAt(pos)) == -1)) {
+                operator = operator + expr.charAt(pos);
                 pos++;
             }
-            operator = expr.charAt(pos);
-            pos++;
-
-            while (expr.charAt(pos) == '(') {
-                pos++;
-            }
-
-            while (pos < expr.length() && (chr = expr.charAt(pos)) != ')') {
+            for (; pos < expr.length(); pos++) {
                 expr2 = expr2 + expr.charAt(pos);
-                pos++;
             }
-            expr2 = expr2.trim();
 
             if (expr1.equals(var1)) {
                 varType1 = 1;
@@ -325,7 +289,6 @@ public class Preprocessor {
                     v1 = expr1;
                 }
             }
-
             if (expr2.equals(var2)) {
                 varType2 = 2;
             } else if (expr2.equals(var1)) {
@@ -385,81 +348,6 @@ public class Preprocessor {
         return line;
     }
 
-    public static String putDefineConst(String line, Hashtable<String, String> defineTableConst) {
-        /* Replaces #define constants with their value */
-        /*
-         * Logic: Finds #define constants in the non-quoted area. For more info look
-         * into _replaceDefineConst().
-         */
-
-        boolean quote = false;
-        int pos = 0, i;
-        String newLine = "", tempLine;
-        ArrayList<Integer> quotePos = new ArrayList<Integer>();// quotePos stores start and end indices of all qoutes
-        line = line.trim();
-
-        while (pos < line.length()) {
-            if (quote) {
-                if (line.charAt(pos) == '\"') {
-                    if (!(pos > 0 && line.charAt(pos - 1) == '\\')) {
-                        quote = false;
-                        quotePos.add(pos);
-                    }
-                }
-            } else {
-                if (line.charAt(pos) == '\"') {
-                    quote = true;
-                    quotePos.add(pos);
-                }
-            }
-            pos++;
-        }
-
-        if (quotePos.size() > 0) {
-
-            tempLine = line.substring(0, quotePos.get(0));
-            tempLine = _replaceDefineConst(tempLine, defineTableConst);
-            if (tempLine.charAt(0) == ' ') {
-                return " " + tempLine.substring(1) + line.substring(quotePos.get(0));
-            } else {
-                newLine = newLine + tempLine;
-            }
-
-            for (i = 0; i < quotePos.size(); i += 2) {
-                newLine = newLine + line.substring(quotePos.get(i), quotePos.get(i + 1) + 1);
-                try {
-                    tempLine = line.substring(quotePos.get(i + 1) + 1, quotePos.get(i + 2));
-                    tempLine = _replaceDefineConst(tempLine, defineTableConst);
-                    if (tempLine.charAt(0) == ' ') {
-                        return " " + newLine + tempLine.substring(1) + line.substring(quotePos.get(i + 2));
-                    } else {
-                        newLine = newLine + tempLine;
-                    }
-                } catch (IndexOutOfBoundsException e) {
-                }
-            }
-
-            if (quotePos.get(quotePos.size() - 1) < line.length() - 1) {
-                tempLine = line.substring(quotePos.get(quotePos.size() - 1) + 1);
-                tempLine = _replaceDefineConst(tempLine, defineTableConst);
-                if (tempLine.charAt(0) == ' ') {
-                    return " " + newLine + tempLine.substring(1);
-                } else {
-                    newLine = newLine + tempLine;
-                }
-            }
-        } else {
-            tempLine = line;
-            tempLine = _replaceDefineConst(tempLine, defineTableConst);
-            if (tempLine.charAt(0) == ' ') {
-                return tempLine;
-            } else {
-                newLine = newLine + tempLine;
-            }
-        }
-        return newLine;
-    }
-
     public static String _replaceDefineFunc(String line, Hashtable<String, DefineFunc> defineTableFunc) {
         /* Works with putDefineFunc(), do not use seperately */
         /*
@@ -495,9 +383,7 @@ public class Preprocessor {
                     } else if (((index + keyLen) < (line.length() - 1))
                             && (line.substring(index + keyLen, index + keyLen + 2).equals(" (")
                                     || line.charAt(index + keyLen) == '(')) {
-
                         index2 = index;
-
                         while (line.charAt(index) != '(') {
                             index++;
                         }
@@ -513,7 +399,6 @@ public class Preprocessor {
                             if (bracketCount < 0) {
                                 break;
                             }
-
                             str1 = str1 + chr;
                             index++;
                         }
@@ -544,9 +429,7 @@ public class Preprocessor {
                         } else if (v1 == 0) {
                             rplcString = rplcString + obj.var1;
                         }
-
                         rplcString = rplcString + obj.operator;
-
                         if (v2 == 1) {
                             rplcString = rplcString + str1;
                         } else if (v2 == 2) {
@@ -566,72 +449,71 @@ public class Preprocessor {
         return line;
     }
 
-    public static String putDefineFunc(String line, Hashtable<String, DefineFunc> defineTableFunc) {
-        /* Replaces #define macros with their value */
+    public static String putDefine(String line, Hashtable<String, String> defineTableConst,
+            Hashtable<String, DefineFunc> defineTableFunc, String type) {
+        /* Replaces #define constants and macros with their value */
         /*
-         * Logic: Finds #define constants in the non-quoted area. For more info look
-         * into _replaceDefineFunc().
+         * Logic: Finds #define constants and macros in the non-quoted area. For more
+         * info look into _replaceDefineConst() and _replaceDefineFunc().
          */
-
-        boolean quote = false;
-        int pos = 0, i;
         String newLine = "", tempLine;
-        ArrayList<Integer> quotePos = new ArrayList<Integer>();// quotePos stores start & end indices of all qoutes
         line = line.trim();
-
-        while (pos < line.length()) {
-            if (quote) {
-                if (line.charAt(pos) == '\"') {
-                    if (!(pos > 0 && line.charAt(pos - 1) == '\\')) {
-                        quote = false;
-                        quotePos.add(pos);
-                    }
-                }
-            } else {
-                if (line.charAt(pos) == '\"') {
-                    quote = true;
-                    quotePos.add(pos);
-                }
-            }
-            pos++;
+        ArrayList<Integer> quotePos = getQuotePos(line);
+        boolean flag = false;
+        if (type.equals("const")) {
+            flag = true;
         }
 
         if (quotePos.size() > 0) {
-
             tempLine = line.substring(0, quotePos.get(0));
-            tempLine = _replaceDefineFunc(tempLine, defineTableFunc);
+            if (flag) {
+                tempLine = _replaceDefineConst(tempLine, defineTableConst);
+            } else {
+                tempLine = _replaceDefineFunc(tempLine, defineTableFunc);
+            }
             if (tempLine.charAt(0) == ' ') {
                 return " " + tempLine.substring(1) + line.substring(quotePos.get(0));
             } else {
                 newLine = newLine + tempLine;
             }
 
-            for (i = 0; i < quotePos.size(); i += 2) {
+            for (int i = 0; i < quotePos.size(); i += 2) {
                 newLine = newLine + line.substring(quotePos.get(i), quotePos.get(i + 1) + 1);
-                try {
+                if (i + 2 < quotePos.size()) {
                     tempLine = line.substring(quotePos.get(i + 1) + 1, quotePos.get(i + 2));
-                    tempLine = _replaceDefineFunc(tempLine, defineTableFunc);
+                    if (flag) {
+                        tempLine = _replaceDefineConst(tempLine, defineTableConst);
+                    } else {
+                        tempLine = _replaceDefineFunc(tempLine, defineTableFunc);
+                    }
                     if (tempLine.charAt(0) == ' ') {
                         return " " + newLine + tempLine.substring(1) + line.substring(quotePos.get(i + 2));
                     } else {
                         newLine = newLine + tempLine;
                     }
-                } catch (IndexOutOfBoundsException e) {
                 }
             }
 
             if (quotePos.get(quotePos.size() - 1) < line.length() - 1) {
                 tempLine = line.substring(quotePos.get(quotePos.size() - 1) + 1);
-                tempLine = _replaceDefineFunc(tempLine, defineTableFunc);
+                if (flag) {
+                    tempLine = _replaceDefineConst(tempLine, defineTableConst);
+                } else {
+                    tempLine = _replaceDefineFunc(tempLine, defineTableFunc);
+                }
                 if (tempLine.charAt(0) == ' ') {
                     return " " + newLine + tempLine.substring(1);
                 } else {
                     newLine = newLine + tempLine;
                 }
             }
-        } else {
+        } else {// no quotes case
             tempLine = line;
-            tempLine = _replaceDefineFunc(tempLine, defineTableFunc);
+            if (flag) {
+                tempLine = _replaceDefineConst(tempLine, defineTableConst);
+            } else {
+                tempLine = _replaceDefineFunc(tempLine, defineTableFunc);
+            }
             if (tempLine.charAt(0) == ' ') {
                 return tempLine;
             } else {
@@ -654,6 +536,7 @@ public class Preprocessor {
         int st = str.indexOf("\"");// finds name of header file enclosed in ""
         int en = str.indexOf("\"", st + 1);
         String headerFile = str.substring(st + 1, en).trim(); // this works for " one.h" but it should not
+        BufferedReader reader = null;
 
         if (!(trueFileList.contains(headerFile))) {
             System.out.println("Included: " + headerFile);//
@@ -662,8 +545,6 @@ public class Preprocessor {
             removeComments(headerFile);
             removeWhitespaces(headerFile);
         }
-
-        BufferedReader reader = null;
 
         if (!headerList.contains(headerFile)) {
             headerList.add(headerFile);
@@ -675,11 +556,12 @@ public class Preprocessor {
                 line = line.trim();
                 if (!line.isEmpty()) {
                     if (line.charAt(0) == '#' && (line.indexOf("include") == 1 || line.indexOf("include") == 2)) {
-                        // problem: works even if there is garbage b/w include and "..."
-                        // but is more reliable
+                        // Problem: works even if there is garbage b/w include and "" but is more
+                        // reliable
                         writeInclude(line, writer, headerList, trueFileList);
                     } else {
-                        writer.write(line + '\n');
+                        writer.write(line);
+                        writer.newLine();
                     }
                 }
             }
@@ -696,7 +578,6 @@ public class Preprocessor {
         ArrayList<String> headerList = new ArrayList<String>();
         Hashtable<String, String> defineTableConst = new Hashtable<String, String>();
         Hashtable<String, DefineFunc> defineTableFunc = new Hashtable<String, DefineFunc>();
-        String fileName = "xyz.c";
         String line;
 
         System.out.println("Opened File: " + fileName);//
@@ -721,16 +602,16 @@ public class Preprocessor {
                     // ArrayList<String> headerList = new ArrayList<String>();//do not use this
                     writeInclude(line, writer, headerList, trueFileList);
                 } else {
-                    writer.write(line + '\n');
+                    writer.write(line);
+                    writer.newLine();
                 }
             }
         }
         reader.close();
         writer.close();
 
-        /* Deals with #defines */
+        /* Stores #defines */
         createCopy(fileName, "temp" + fileName);
-        /* For Constants */
         fileRead = new FileReader(tempFile);
         fileWrite = new FileWriter(mainFile);
         reader = new BufferedReader(fileRead);
@@ -740,18 +621,17 @@ public class Preprocessor {
             if (!line.isEmpty()) {
                 if (line.charAt(0) == '#' && (line.indexOf("define") == 1 || line.indexOf("define") == 2)) {
                     storeDefine(line, defineTableConst, defineTableFunc);
-                } else {
-                    do {
-                        line = putDefineConst(line, defineTableConst);
-                    } while (line.charAt(0) == ' ');
-                    writer.write(line + '\n');
+                } else{
+                    writer.write(line);
+                    writer.newLine();
                 }
             }
         }
         reader.close();
         writer.close();
+        tempFile.delete();
 
-        /* For Macros */
+        /* Puts Consts and Macros */
         createCopy(fileName, "temp" + fileName);
         fileRead = new FileReader(tempFile);
         fileWrite = new FileWriter(mainFile);
@@ -761,19 +641,23 @@ public class Preprocessor {
             line = line.trim();
             if (!line.isEmpty()) {
                 do {
-                    line = putDefineFunc(line, defineTableFunc);
+                    line = putDefine(line, defineTableConst, defineTableFunc, "const");
                 } while (line.charAt(0) == ' ');
-                writer.write(line + '\n');
+                do {
+                    line = putDefine(line, defineTableConst, defineTableFunc, "macro");
+                } while (line.charAt(0) == ' ');
+                writer.write(line);
+                writer.newLine();
             }
         }
         reader.close();
         writer.close();
-
         tempFile.delete();
+
         createCopy(fileName, "final" + fileName);
         System.out.println("\nConversion Completed\nResult in File: final" + fileName);//
         for (int i = 0; i < trueFileList.size(); i++) {
-            /* recreates the original files */
+            /* Recreates the original files */
             String name = trueFileList.get(i);
             createCopy("true" + name, name);
             File file = new File(PATH + "true" + name);
