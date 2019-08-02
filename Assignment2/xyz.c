@@ -1,32 +1,25 @@
- #   include  /* GH 
-  f*/"one.h   """
-#define         MAX_2  20
- #  define F(  a,b)a +  b 
- # define A( a,b) ((b) %  a)
-
-#   define hello "lolwut"
+ #   include  /* GH  f*/"one.h   " ""
+   #  include "two.h"
+#define         MAX_2(c,d) c^d
+ #  define F(  a,   b)a +  b 
+ # define   A( a1,   bb) ( (bb) >=  a1)
+#   define hello "HI"
 #define D1 hello
-
 int      main()
-
 {
-
-    #  include "two.h"
-#      define MAX 10/*multi
+#      define   MAX 10/*multi
  */
-
-
  /*gh a
- "#include lolol \"" *
+ "# include lolol \"" *
+ #include "hi"
  */
-    char a  [200] =       "#include \"\" /*F( a,b  )*/ #define";/*
+    char a  [SIZE] =       "#include \" /*F( a,c)*/ #define";/*
      */int x;
-
- 
-
+ char s1 = 'd';
      printf("He/*\"     */llo  %d %d \n",one,two);
-    printf(     " %d  %d MAX %d"  ,A(6,7) ,MAX_2 ,MAX);
-    int x = F (10,F(1,2));
+    printf(     " %d  %d MAX %d"  ,A(6,7) ,MAX_2 (2,4) ,MAX);
+    int x = F (MIN,F((1/5),2));
+    printf("   A");    printf  ("B  ");printf    ("C   ")   ;printf("D ");
     char b[30] = D1;
     printf("%s",b );
     
