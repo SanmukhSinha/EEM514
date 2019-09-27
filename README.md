@@ -6,9 +6,10 @@
   - Assignment 2
   - GNIREENIGNESREVER
   - jFugue
+  - ClassPrograms
 
 ## Incomplete Assignments:
-  - ClassPrograms
+  - Assignment 5
 
 ## Sample Programs
   - Multithreading
