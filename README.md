@@ -6,11 +6,11 @@
   - Assignment 2
   - GNIREENIGNESREVER
   - jFugue
-  - ClassPrograms
-
-## Incomplete Assignments:
-  - Assignment 5
-
-## Sample Programs
   - Multithreading
+  - ClassPrograms
+  - Assignment 5(a)
+  - Assignment 5(b)
+  - Assignment 5(c)
+  - Network Programming
+  
   
